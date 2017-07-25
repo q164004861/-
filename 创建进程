@@ -1,0 +1,186 @@
+// asdfasdf.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include<windows.h>
+#include <tchar.h>
+
+
+typedef struct tagHANDLES
+{
+	HANDLE hProcess;
+	HANDLE hThread;
+}HANDLES,*pHANDLES;
+
+
+BOOL CreateChild(PTCHAR szChildPath,PTCHAR szCommandLine)
+{
+	
+	int i,j;
+	int k = 0;
+	int nHeigth;
+	int nWidth;
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	HANDLES handles[30];
+
+	ZeroMemory(&pi,sizeof(pi));
+	ZeroMemory(&si,sizeof(si));
+
+	
+	nWidth = GetSystemMetrics ( SM_CXSCREEN ) / 9;
+	nHeigth = GetSystemMetrics ( SM_CYSCREEN ) / 5;
+
+	si.cb = sizeof(si);
+	si.dwXSize =  nWidth;
+	si.dwYSize =  nHeigth;
+	si.dwFlags = STARTF_USESIZE | STARTF_USEPOSITION; 
+	
+	for ( i = 0;i < 10;i++)
+	{
+		CreateProcess(
+			szChildPath,
+			szCommandLine,
+			NULL,
+			NULL,
+			FALSE,
+			0,
+			NULL,
+			NULL,
+			&si,
+		&pi);
+
+		handles[k].hProcess = pi.hProcess;
+		handles[k].hThread = pi.hThread;
+
+		si.dwX += 80;
+		si.dwY += 80;
+		k++;
+		Sleep(100);
+	}
+
+
+	for (k = k-1;k>=0;k--)
+	{
+		TerminateProcess(handles[k].hProcess,0);
+
+		CloseHandle(handles[k].hProcess);
+		CloseHandle(handles[k].hThread);
+		Sleep(100);
+	}
+	k = 0;
+	si.dwX = 0;
+	si.dwY = 0;
+
+	for (i = 0;i < 9; i++)
+	{
+			
+		CreateProcess(
+			szChildPath,
+			szCommandLine,
+			NULL,
+			NULL,
+			FALSE,
+			0,
+			NULL,
+			NULL,
+			&si,
+			&pi);
+		
+		handles[k].hProcess = pi.hProcess;
+		handles[k].hThread = pi.hThread;
+		
+		si.dwX +=  nWidth;
+		k++;
+		Sleep(100);
+	}
+
+		si.dwX -=  nWidth;
+
+	for ( j = 1;j < 5;j++)
+	{
+			si.dwY += nHeigth;
+			CreateProcess(
+				szChildPath,
+				szCommandLine,
+				NULL,
+				NULL,
+				FALSE,
+				0,
+				NULL,
+				NULL,
+				&si,
+				&pi);
+			
+			handles[k].hProcess = pi.hProcess;
+			handles[k].hThread = pi.hThread;
+			k++;
+			Sleep(100);		
+	}
+	
+	
+
+	for (;i>1;i--)
+	{
+		si.dwX -=  nWidth;
+		CreateProcess(
+			szChildPath,
+			szCommandLine,
+			NULL,
+			NULL,
+			FALSE,
+			0,
+			NULL,
+			NULL,
+			&si,
+			&pi);
+		
+		handles[k].hProcess = pi.hProcess;
+		handles[k].hThread = pi.hThread;
+		k++;
+		Sleep(100);	
+	}
+	for (j = 3;j>0;j--)
+	{
+		si.dwY -=  nHeigth;
+		CreateProcess(
+			szChildPath,
+			szCommandLine,
+			NULL,
+			NULL,
+			FALSE,
+			0,
+			NULL,
+			NULL,
+			&si,
+			&pi);
+		
+		handles[k].hProcess = pi.hProcess;
+		handles[k].hThread = pi.hThread;
+		k++;
+		Sleep(100);	
+
+	}
+
+
+	for (k = k-1;k>=0;k--)
+	{
+		TerminateProcess(handles[k].hProcess,0);
+		
+		CloseHandle(handles[k].hProcess);
+		CloseHandle(handles[k].hThread);
+		Sleep(100);
+	}
+
+
+	
+
+	return FALSE;
+
+}
+int main(int argc, char* argv[])
+{
+	CreateChild(TEXT("c:\\_6Code_Target.exe"),NULL);
+	getchar();
+	return 0;
+}
