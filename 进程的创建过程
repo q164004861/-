@@ -1,0 +1,42 @@
+#include <Windows.h>
+BOOL CreateChild(PTCHAR szChildName,PTCHAR szCommandLine)
+{
+	STARTUPINFO si;//启动信息  可以防调试  父进程填充的启动信息不同
+	PROCESS_INFORMATION pi;//进程信息
+	
+	ZeroMemory(&si,sizeof(si));
+	ZeroMemory(&pi,sizeof(pi));
+
+	si.cb = sizeof(si);
+	//创建进程，返回成功失败
+
+	if (CreateProcess(
+		szChildName,
+		szCommandLine,
+		NULL,
+		NULL,
+		FALSE,
+		0,
+		NULL,
+		NULL,
+		&si,
+		&pi
+		))
+	{
+		printf("创建成功,5秒钟后关闭");
+		Sleep(5000);
+	
+		TerminateProcess(pi.hProcess,0);
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);//必须都释放
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int main(int argc, char* argv[])
+{
+	CreateChild(TEXT("C:\\Program Files\\Tencent\\QQ\\Bin\\QQ.exe"),NULL);	
+	return 0;
+}
+
