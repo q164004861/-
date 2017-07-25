@@ -1,0 +1,14 @@
+#include "stdafx.h"
+#include <locale.h>
+#include <iostream.h>
+
+int main(int argc, char* argv[])
+{
+	setlocale(LC_ALL, "chs");//直接赋值的必须设置local环境
+	wchar_t wc = L'中';
+	//wscanf( L"%lc",&wc);//接受输入的不用设置local环境 就能打印
+	wprintf(L"%c",wc);
+
+
+	return 0;
+}
