@@ -1,0 +1,118 @@
+// aassdasd.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <windows.h>
+#include <stdlib.h>
+#include <tchar.h>
+
+int main(int argc, char* argv[])
+{
+	
+	STARTUPINFO si[3];
+	PROCESS_INFORMATION pi[3];
+	SECURITY_ATTRIBUTES sa;
+	
+	TCHAR szCom[20] = {0};
+	
+	ZeroMemory(si,sizeof(si));
+	ZeroMemory(pi,sizeof(pi));
+	ZeroMemory(&sa,sizeof(sa));
+
+	si[0].cb = sizeof(si);
+		si[1].cb = sizeof(si);
+			si[2].cb = sizeof(si);
+	
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.bInheritHandle = TRUE;
+	
+	CreateProcess(_T("C:\\Windows\\system32\\calc.exe"),//程序路径
+		NULL,//命令行
+		&sa,//不继承进程句柄//是否允许子进程继承 
+		NULL,//不继承线程句柄
+		FALSE,//不继承句柄，TRUE 继承父进程中可以继承的句柄
+		0,	//创建标志 挂起 等
+		NULL,//使用父进程环境变量
+		NULL,//使用父进程目录作为当前目录，可以自己设置
+		&si[0],
+		&pi[0]);
+	
+printf("%d \n",GetLastError());
+	
+	CreateProcess(_T("C:\\Windows\\system32\\notepad.exe"),
+		NULL,
+		NULL,
+		NULL,
+		FALSE,
+		0,
+		NULL,
+		NULL,
+		&si[1],
+		&pi[1]);
+printf("%d \n",GetLastError());
+
+
+	_stprintf(szCom,_T("%u %u"),pi[0].hProcess,pi[1].hProcess);
+	
+	CreateProcess(_T("C:\\Program Files\\Microsoft Visual Studio\\MyProjects\\aassdasd\\Target\\debug\\Target.exe"),
+		szCom,
+		NULL,
+		NULL,
+		TRUE,
+		CREATE_NEW_CONSOLE|CREATE_SUSPENDED,
+		NULL,
+		NULL,
+		&si[2],
+		&pi[2]);
+printf("%d \n",GetLastError());
+	
+	ResumeThread(pi[2].hThread);
+	return 0;
+}
+
+//================================================================================
+
+// Target.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <windows.h>
+#include <tchar.h>
+int main(int argc, char* argv[])
+{
+	HANDLE dwCale = NULL;
+	HANDLE dwNote = NULL;
+	TCHAR szErr[0x10] = {0};
+	
+	TCHAR* szCom = GetCommandLine();
+	
+	_stscanf(szCom,_T("%u %u"),&dwCale,&dwNote);
+
+	puts("\n\n");
+	printf("父进程传递过来的句柄值如下：\n");
+	printf("clac：%X\n", dwCale);
+       printf("notepad：%X\n", dwNote);
+	if (TerminateProcess(dwCale,0))
+	{
+		MessageBox(NULL,_T("计算器退出成功"),_T("tip"),MB_OK);
+	}
+	else
+	{
+		_stprintf(szErr,_T("计算器退出失败,%d"),GetLastError());
+		MessageBox(NULL,szErr,_T("tip"),MB_OK);
+	}
+	
+	
+	
+	if (TerminateProcess(dwCale,0))
+	{
+		MessageBox(NULL,_T("记事本退出成功"),_T("tip"),MB_OK);
+	}
+	else
+	{	
+		_stprintf(szErr,_T("记事本退出失败,%d"),GetLastError());
+		MessageBox(NULL,szErr,_T("tip"),MB_OK);
+		}
+        return 0;
+}
+
