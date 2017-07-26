@@ -1,0 +1,104 @@
+// 基础3作业.cpp : 定义控制台应用程序的入口点。
+//
+
+#include "stdafx.h"
+#include <Windows.h>
+#include <TlHelp32.h>
+#include <locale.h>
+
+BOOL EnumProcess()
+{
+	HANDLE hProcessSnap;
+	PROCESSENTRY32  process32 = {sizeof(PROCESSENTRY32)};
+	DWORD dwFlag;
+
+	hProcessSnap =  CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+	if (INVALID_HANDLE_VALUE == hProcessSnap)
+	{
+		return FALSE;
+	}
+	 dwFlag =  Process32First(hProcessSnap,&process32);
+	if (dwFlag == 0 || dwFlag ==ERROR_NO_MORE_FILES )
+	{
+		return FALSE;
+	}
+
+	do 
+	{
+		_tprintf(_T("PID:%8d 线程数量:%8d 进程名称%s\n"),
+			process32.th32ProcessID,process32.cntThreads,process32.szExeFile);
+	
+	} while (Process32Next(hProcessSnap,&process32));
+
+	CloseHandle(hProcessSnap);
+	return TRUE;
+}
+
+BOOL EnumModuleByPID(DWORD dwPID)
+{
+	DWORD dwFlag;
+	HANDLE hModuleSnap;
+	MODULEENTRY32   module32 = {sizeof(MODULEENTRY32)};
+
+	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32,dwPID);
+
+	if (INVALID_HANDLE_VALUE == hModuleSnap)
+	{
+		return FALSE;
+	}
+	dwFlag = Module32First(hModuleSnap,&module32);
+
+	if (dwFlag == 0 )
+	{
+		return FALSE;
+	}
+
+	do 
+	{
+		_tprintf(_T("模块大小：%8d\t模块名称：%s \n"),module32.dwSize,module32.szModule);
+	} while (Module32Next(hModuleSnap,&module32));
+
+	CloseHandle(hModuleSnap);
+	return TRUE; 
+}
+
+BOOL TerminateByPID(DWORD dwPID)
+{
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS,FALSE,dwPID);
+
+	if (hProcess == NULL)
+	{
+		_tprintf(_T("PID不存在"));
+		return FALSE;
+	}
+
+	TerminateProcess(hProcess,0);
+	CloseHandle(hProcess);
+	return TRUE;
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	DWORD dwPID;
+	setlocale(LOCALE_ALL,"");
+
+	if (EnumProcess())
+	{
+		_tprintf(_T("========================================\n\n"));
+
+		_tprintf(_T("请输入要遍历模块的进程PID\n"));
+		_tscanf(_T("%u"),&dwPID);
+		EnumModuleByPID(dwPID);
+
+		_tprintf(_T("========================================\n\n"));
+		_tprintf(_T("请输入要结束进程的PID\n"));
+		_tscanf(_T("%u"),&dwPID);
+		if (TerminateByPID(dwPID))
+		{
+			_tprintf(_T("成功结束进程 \n"));
+		}
+	}
+
+	return 0;
+}
+
