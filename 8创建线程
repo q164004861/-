@@ -1,0 +1,102 @@
+// _07_26.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <windows.h>
+#include <tchar.h>
+#include <stdlib.h>
+
+int nFlag = 0;//线程控制标志
+
+//获取长度线程
+DWORD WINAPI GetLenProc(LPVOID pParameter)
+{
+	while (1)
+	{
+		if (nFlag == 1)
+		{
+			_tprintf(_T("接受到用户输入 \n"));
+			_tprintf(_T("字符串: %s \n"),(char*)pParameter);
+			_tprintf(_T("长度为: %d \n"),_tcslen((char*)pParameter));
+
+			nFlag = 2;
+		}
+	}
+
+	return 0;	
+}
+//改变颜色
+DWORD WINAPI ChangeRGBProc(LPVOID pParameter)
+{
+	CHAR dwColor1 = 0;
+	CHAR dwColor2 = 0xA;
+	TCHAR szColor[0x20];
+	while (1)
+	{
+		if (nFlag == 3)
+		{
+			dwColor1 = (dwColor1+1) % 0xF;
+			dwColor2 = (dwColor2+1) % 0xF;
+			_stprintf(szColor,_T("%s %x%x"),_T("color"),dwColor1,dwColor2);//设置颜色
+
+			_tsystem(szColor);//改变颜色
+			nFlag = 0;
+		}
+	}
+	return 0;	
+}
+//转化大小写
+DWORD WINAPI TransformProc(LPVOID pParameter)
+{
+	while (1)
+	{
+		if (nFlag == 2)
+		{	
+			TCHAR szBuff[0x100] = {0};//转换字符缓冲区
+
+			_tcscpy(szBuff,(TCHAR*)pParameter);
+			CharUpperBuff(szBuff,_tcslen(szBuff));//将小写转换成大写
+
+			_tprintf(_T("转换为大写字母ing........\n"));
+			_tprintf(_T("转换后:%s \n"),szBuff);
+			_tprintf(_T("================================== \n"));
+
+			nFlag = 3;
+		}
+	}
+	
+	return 0;	
+}
+
+int main(int argc, char* argv[])
+{
+
+	HANDLE hColor;//改变颜色线程句柄
+	HANDLE hGetLen;//获取长度线程句柄
+	HANDLE hTrans;//转换大小写线程句柄
+
+	TCHAR szBuff[0x100] = {0};//接受输入的缓冲区
+
+	hGetLen = CreateThread(NULL,0,GetLenProc,szBuff,0,NULL);
+	hTrans = CreateThread(NULL,0,TransformProc,szBuff,0,NULL);
+	hColor = CreateThread(NULL,0,ChangeRGBProc,NULL,0,NULL);
+
+	while (_tscanf(_T("%s"),szBuff) && *szBuff != '1')//接受字符串输入，如果输入1 则退出。
+	{		
+			nFlag = 1;
+	}
+
+	TerminateThread(hGetLen,0);//线程退出
+	TerminateThread(hTrans,0);
+	TerminateThread(hColor,0);
+
+	CloseHandle(hGetLen);//关闭句柄
+	CloseHandle(hTrans);
+	CloseHandle(hColor);
+
+	_tprintf(_T("程序退出"));
+	Sleep(1000);
+
+	return 0;
+}
+
